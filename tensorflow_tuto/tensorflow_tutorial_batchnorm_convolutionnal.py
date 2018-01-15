@@ -22,6 +22,11 @@ def batchnorm(Y,test,it,b,convolutional=False):
 	Ybn = tf.nn.batch_normalization(Y, m, v, b, None, epsilon)
 	return Ybn, update
 
+def compatible_convolutional_noise_shape(Y):
+	noiseshape = tf.shape(Y)
+	noiseshape = noiseshape * tf.constant([1,0,0,1]) + tf.constant([0,1,1,0])
+	return noiseshape
+
 def main():
 	print "==== tensorflow ===="
 
@@ -34,57 +39,61 @@ def main():
 
 	it = tf.placeholder(tf.int32)
 
-	# five layers
-	L = 200
-	M = 100
-	N = 60
-	P = 30
-	Q = 10
+	K = 24
+	L = 48
+	M = 64
+	N = 200
 
-	Y_ = tf.placeholder(tf.float32,[None,10]) # to receive the label // the correct answers
-	# we encode the answer on 10 elements (one per value -- 0/1/2/../9)
+	pkeep = tf.placeholder(tf.float32)
+	pkeep_conv = tf.placeholder(tf.float32)
 
 	# selection for batch normalization
 	test = tf.placeholder(tf.bool)
 
 	# we have one weighted matrix and one bias for each layer
 	# initialize each one with random values (truncated_normal = random)
-	W1 = tf.Variable(tf.truncated_normal([784, L], stddev=0.1))  # 784 = 28 * 28
-	B1 = tf.Variable(tf.ones([L])/10)
-	W2 = tf.Variable(tf.truncated_normal([L, M], stddev=0.1))
-	B2 = tf.Variable(tf.ones([M])/10)
-	W3 = tf.Variable(tf.truncated_normal([M, N], stddev=0.1))
-	B3 = tf.Variable(tf.ones([N])/10)
-	W4 = tf.Variable(tf.truncated_normal([N, P], stddev=0.1))
-	B4 = tf.Variable(tf.ones([P])/10)
-	W5 = tf.Variable(tf.truncated_normal([P, Q], stddev=0.1))
-	B5 = tf.Variable(tf.ones([Q])/10)
+	W1 = tf.Variable(tf.truncated_normal([6,6,1,K], stddev=0.1))
+	B1 = tf.Variable(tf.constant(0.1, tf.float32, [K]))
+	W2 = tf.Variable(tf.truncated_normal([5, 5, K, L], stddev=0.1))
+	B2 = tf.Variable(tf.constant(0.1, tf.float32, [L]))
+	W3 = tf.Variable(tf.truncated_normal([4, 4, L, M], stddev=0.1))
+	B3 = tf.Variable(tf.constant(0.1, tf.float32, [M]))
 
+	W4 = tf.Variable(tf.truncated_normal([7 * 7 * M, N], stddev=0.1))
+	B4 = tf.Variable(tf.constant(0.1, tf.float32, [N]))
+	W5 = tf.Variable(tf.truncated_normal([N, 10], stddev=0.1))
+	B5 = tf.Variable(tf.constant(0.1, tf.float32, [10]))
 
-	print "MODEL WITH 5 LAYERS USING BATCH NORM"
+	print "MODEL WITH 5 LAYERS USING CONVOLUTIONAL NEURAL NETWORK AND BATCH NORM"
 
-	X_ = tf.reshape(X,[-1,28*28])
-
-	Y1_ = tf.matmul(X_,W1)
-	Y1_norm, update1 = batchnorm(Y1_,test,it,B1)
+	Y1_ = tf.nn.conv2d(X,W1,strides=[1,1,1,1],padding='SAME')
+	Y1_norm, update1 = batchnorm(Y1_,test,it,B1,convolutional=True)
 	Y1 = tf.nn.relu(Y1_norm)
+	Y1_dropout = tf.nn.dropout(Y1, pkeep_conv, compatible_convolutional_noise_shape(Y1))
 
-	Y2_ = tf.matmul(Y1,W2)
-	Y2_norm, update2 = batchnorm(Y2_,test,it,B2)
+	Y2_ = tf.nn.conv2d(Y1_dropout,W2,strides=[1,2,2,1],padding='SAME')
+	Y2_norm, update2 = batchnorm(Y2_,test,it,B2,convolutional=True)
 	Y2 = tf.nn.relu(Y2_norm)
+	Y2_dropout = tf.nn.dropout(Y2, pkeep_conv, compatible_convolutional_noise_shape(Y2))
 
-	Y3_ = tf.matmul(Y2,W3)
-	Y3_norm, update3 = batchnorm(Y3_,test,it,B3)
+	Y3_ = tf.nn.conv2d(Y2_dropout,W3,strides=[1,2,2,1],padding='SAME')
+	Y3_norm, update3 = batchnorm(Y3_,test,it,B3,convolutional=True)
 	Y3 = tf.nn.relu(Y3_norm)
+	Y3_dropout = tf.nn.dropout(Y3, pkeep_conv, compatible_convolutional_noise_shape(Y3))
+	Y3_reshape = tf.reshape(Y3_dropout,shape=[-1,7*7*M])
 
-	Y4_ = tf.matmul(Y3,W4)
+	Y4_ = tf.matmul(Y3_reshape,W4)
 	Y4_norm, update4 = batchnorm(Y4_,test,it,B4)
-	Y4 = tf.nn.relu(Y4_norm)
+	Y4_relu = tf.nn.relu(Y4_norm)
+	Y4 = tf.nn.dropout(Y4_relu,pkeep)
 
 	Ylogits = tf.matmul(Y4,W5)+B5 # biases + normalized values
 	Y = tf.nn.softmax(Ylogits) # we use softmax just for the last layer
 
 	update = tf.group(update1,update2,update3,update4)
+
+	Y_ = tf.placeholder(tf.float32,[None,10]) # to receive the label // the correct answers
+	# we encode the answer on 10 elements (one per value -- 0/1/2/../9)
 
 	print "SUCESS METRIC"
 	
@@ -115,7 +124,7 @@ def main():
 
 	max_learning_rate = 0.003
 	min_learning_rate = 0.001
-	decay_speed = 1000.
+	decay_speed = 2000. # 0.003-0.0001-2000=>0.9826 done in 5000 iterations
 	
 	
 	for i in range(10000):
@@ -125,19 +134,19 @@ def main():
 		batch_X,batch_Y = mnist.train.next_batch(100)
 		batch_X = np.reshape(batch_X,(-1,28,28,1))
 		# dropout for training step
-		train_data = {X:batch_X,Y_:batch_Y,lr:learning_rate,test:False}
+		train_data = {X:batch_X,Y_:batch_Y,pkeep:0.75,lr:learning_rate,test:False,pkeep_conv:1.0}
 
 		# train loop
 		sess.run(train_step,feed_dict=train_data)
-		sess.run(update,{X:batch_X,Y_:batch_Y,test:False,it:i})
 
 		# train data
 		a,c = sess.run([accuracy,cross_entropy],feed_dict=train_data)
+		sess.run(update,{X:batch_X,Y_:batch_Y,test:False,it:i,pkeep:1.0,pkeep_conv:1.0})
 
 		# test loop
 		mnist_x = mnist.test.images
 		mnist_x = np.reshape(mnist_x,(-1,28,28,1))
-		test_data = {X:mnist_x, Y_:mnist.test.labels,lr:learning_rate,test:False}
+		test_data = {X:mnist_x, Y_:mnist.test.labels,pkeep:1.,lr:learning_rate,pkeep_conv:1.0,test:False}
 
 		# test data
 		# no dropout during evaluation
@@ -153,4 +162,4 @@ def main():
 if __name__ == '__main__':
 	main()
 
-# accuracy => 98.4%
+# accuracy => 99.6%
