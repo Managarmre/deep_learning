@@ -54,20 +54,10 @@ def main():
 	evaluation = estimator.evaluate(input_fn=eval_test_data_input_fn, steps=10000)
 	digits = estimator.predict(input_fn=predict_input_fn)
 
-	print " ======================= RESULT ======================= "
-	print evaluation["accuracy"]*100
-
-	estimator.fit(input_fn=train_data_input_fn, steps=10000)
-	evaluation = estimator.evaluate(input_fn=eval_train_data_input_fn, steps=10000)
-
-	print " ======================= RESULT ======================= "
-	print evaluation["accuracy"]*100
-
-
-	# for predict in digits:
-	# 	predicted_class = predict['digits']
-	# 	probability = predict['probabilities']
-	# 	print (predicted_class, probability)
+	for predict in digits:
+		predicted_class = predict['digits']
+		probability = predict['probabilities']
+		print (predicted_class, probability)
 
 if __name__ == '__main__':
 	main()
