@@ -71,8 +71,6 @@ def main():
 	acc_summary = tf.summary.scalar("batch_accuracy", accuracy)
 	summaries = tf.summary.merge([loss_summary, acc_summary])
 	step = 0
-	timestamp = str(math.trunc(time.time()))
-	summary_writer = tf.summary.FileWriter("log/" + timestamp + "-training")
 	DISPLAY_FREQ = 50
 	_50_BATCHES = DISPLAY_FREQ * BATCHSIZE * SEQLEN
 	
@@ -85,7 +83,6 @@ def main():
 			dic = {Xd: x, Yd: y_, Hin: inH, pkeep: 1.0, batchsize: BATCHSIZE}  # no dropout for validation
 			y, l, bl, acc, smm = sess.run([Y, seqloss, batchloss, accuracy, summaries], feed_dict=dic)
 			txt.print_learning_learned_comparison(x, y, l, bookranges, bl, acc, epoch_size, step, epoch)
-			summary_writer.add_summary(smm, step)
 
 		inH = outH
 		
@@ -95,4 +92,4 @@ def main():
 if __name__ == '__main__':
 	main()
 
-# accuracy = 0.56
+# accuracy = 0.63
