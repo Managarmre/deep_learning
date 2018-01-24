@@ -37,14 +37,13 @@ def imageRecognition(image,output,nb_predictions):
   graph_def = tf.import_graph_def(graph,name='')
 
   with tf.Session() as sess:
+    # adaptation of tutorial code
     # softmax:0 contain the normalized prediction across 1000 labels
     softmax = sess.graph.get_tensor_by_name('softmax:0')
     # DecodeJpeg/contents:0 contain JPEG encoding (format string) of the image
     prediction = sess.run(softmax,{'DecodeJpeg/contents:0': img})
     # remove single dimensional entries from the shape of an array
     prediction = np.squeeze(prediction)
-    # create node ID
-    # node = NodeLookup()
 
     # recover node id of best predictions
     top_predictions = prediction.argsort()[-nb_predictions:][::-1]
