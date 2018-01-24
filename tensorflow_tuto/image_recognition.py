@@ -107,6 +107,8 @@ def main(_):
     for p in tp:
       tpc = convertPredictions(lab,p)
       print tpc, prediction[p]
+  else:
+    print "Fail to load tar file"
 
   print "==== end of program ===="
 
