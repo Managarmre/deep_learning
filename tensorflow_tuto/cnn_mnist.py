@@ -79,7 +79,9 @@ def dropout(input,rate,training):
 def cnnModel(features,labels,mode):
   """
   The cnn features
-  @features the input features map
+  @features the input features map (a python dictionnary - each key is the 
+    name of the feature, each value is an array containing all of that
+    feature's values)
   @labels contains a list of predictions for our examples
   @mode training mode or evaluation
   """
