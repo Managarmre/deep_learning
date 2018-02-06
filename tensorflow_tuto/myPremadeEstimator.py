@@ -8,7 +8,7 @@ import myData
 import tensorflow as tf
 import numpy as np
 
-BATCHSIZE = 1
+BATCHSIZE = 100
 
 def main(_):
     print ("Try Premade Estimator")
