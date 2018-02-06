@@ -2,7 +2,6 @@
 # version 1
 # date 01/02/18
 
-# see https://www.tensorflow.org/api_docs/python/tf/estimator/Estimator
 # see https://www.tensorflow.org/get_started/premade_estimators
 
 import myData
@@ -19,8 +18,8 @@ def main(_):
     # recover train and test data
     dataTrain = myData.loadData("Database/data.txt")
     train_x,train_y = myData.inputData(dataTrain,"Database/TrainData",6912)
-    # dataTest = myData.loadData("Database/test.txt")
-    # test_x,test_y = myData.inputData(dataTest,"Database/TestData",6912)
+    dataTest = myData.loadData("Database/test.txt")
+    test_x,test_y = myData.inputData(dataTest,"Database/TestData",6912)
 
     # define the feature columns
     #   provide many options for representing data to the model
@@ -41,29 +40,32 @@ def main(_):
     # print len(my_feature_columns)
     # exit()
 
-    # create three hidden layer DNN with 40 units each
+    # create three hidden layer DNN with 4 units each
     # DNNClassifier is useful for deep models that perform multiclass classification
     #   6 targets classes [0 to 5]
     classifier = tf.estimator.DNNClassifier(feature_columns=my_feature_columns,
-        hidden_units=[1],#40,40,40],
+        hidden_units=[4,4,4],
         n_classes=6)
         # ,label_vocabulary=Labels)
 
     print "====> begin training"
 
     # train the model
+    # steps indicate when stop the training (after n steps)
     classifier.train(input_fn=lambda:myData.trainData(train_x,train_y,BATCHSIZE),
-        steps=10)
+        steps=1)
 
     print "====> end of training"
 
-    """
-    print "====> eval result"
-    eval_result = classifier.evaluate(input_fn=lambda:myData.evalTraining(
-        test_x,test_y,BATCHSIZE))
-    print '\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
+    print "====> begin eval"
 
-    """
+    evalTest = myData.evalTraining(test_x,test_y,BATCHSIZE)
+    print "classifier... (10 minutes)"
+    eval_result = classifier.evaluate(input_fn=evalTest)
+    print eval_result
+    # print '\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
+
+    print "====> end eval"
 
     print "End of program"
 

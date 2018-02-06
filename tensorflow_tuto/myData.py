@@ -9,7 +9,7 @@ import cv2
 import tensorflow as tf
 import numpy as np
 
-DATA_SIZE = 6912
+DATA_SIZE = 6912 # (48*48*3) for 48x48 pixel images (RGB)
 BATCHSIZE = 100
 
 def loadData(file):
@@ -75,7 +75,7 @@ def trainData(features,labels,batch_size):
     # convert the input data into Dataset (tensorflow API)
     # Dataset contains methods to create and transform datasets
     dataset = tf.data.Dataset.from_tensor_slices((dict(features),labels))
-    dataset = dataset.shuffle(1).repeat().batch(batch_size)
+    dataset = dataset.shuffle(1000).repeat().batch(batch_size)
     # build the iterator and return the end of the pipeline
     return dataset.make_one_shot_iterator().get_next()
 
@@ -87,6 +87,7 @@ def evalTraining(features,labels,batch_size):
         inputs = (features,labels)
 
     dataset = tf.data.Dataset.from_tensor_slices(inputs)
+
     assert batch_size is not None, "batch_size must not be None"
     dataset = dataset.batch(batch_size)
 
@@ -108,6 +109,7 @@ def main(_):
 
     print "==== Eval Training ===="
     resEval = evalTraining(featuresTest,labelsTest,BATCHSIZE)
+    # print resEval
 
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.INFO)

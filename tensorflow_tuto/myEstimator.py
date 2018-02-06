@@ -3,7 +3,6 @@
 # date 01/02/18
 
 # see https://www.tensorflow.org/api_docs/python/tf/estimator/Estimator
-# see https://www.tensorflow.org/get_started/premade_estimators
 
 import myData
 import tensorflow as tf
