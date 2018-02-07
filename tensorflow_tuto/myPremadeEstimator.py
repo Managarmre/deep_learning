@@ -59,11 +59,9 @@ def main(_):
 
     print "====> begin eval"
 
-    evalTest = myData.evalTraining(test_x,test_y,BATCHSIZE)
-    print "classifier... (10 minutes)"
-    eval_result = classifier.evaluate(input_fn=evalTest)
-    print eval_result
-    # print '\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
+    eval_result = classifier.evaluate(input_fn=lambda:myData.evalTraining(test_x,test_y,BATCHSIZE))
+    
+    print '\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
 
     print "====> end eval"
 
