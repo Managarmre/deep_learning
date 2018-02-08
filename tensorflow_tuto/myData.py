@@ -72,9 +72,11 @@ def trainData(features,labels,batch_size):
     @labels list of predictions
     @batch_size
     """
-    # convert the input data into Dataset (tensorflow API)
-    # Dataset contains methods to create and transform datasets
-    dataset = tf.data.Dataset.from_tensor_slices((dict(features),labels))
+    # convert the input data into TFRecordDataset (tensorflow API)
+    # TFRecordDataset contains methods to create and transform datasets
+    # for more information about dataset
+    # see https://www.tensorflow.org/programmers_guide/datasets
+    dataset = tf.data.TFRecordDataset.from_tensor_slices((dict(features),labels))
     dataset = dataset.shuffle(1000).repeat().batch(batch_size)
     # build the iterator and return the end of the pipeline
     return dataset.make_one_shot_iterator().get_next()
@@ -86,7 +88,7 @@ def evalTraining(features,labels,batch_size):
     else:
         inputs = (features,labels)
 
-    dataset = tf.data.Dataset.from_tensor_slices(inputs)
+    dataset = tf.data.TFRecordDataset.from_tensor_slices(inputs)
 
     assert batch_size is not None, "batch_size must not be None"
     dataset = dataset.batch(batch_size)

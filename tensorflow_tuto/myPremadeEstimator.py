@@ -53,7 +53,7 @@ def main(_):
     # train the model
     # steps indicate when stop the training (after n steps)
     classifier.train(input_fn=lambda:myData.trainData(train_x,train_y,BATCHSIZE),
-        steps=1)
+        steps=1000)
 
     print "====> end of training"
 
@@ -70,3 +70,6 @@ def main(_):
 if __name__ == '__main__':
     # tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run()
+
+# accuracy 30%
+# execution time: around 10 minutes
