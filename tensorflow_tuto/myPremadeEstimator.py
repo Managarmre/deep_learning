@@ -1,5 +1,4 @@
 # @author Pauline Houlgatte
-# version 1
 # date 01/02/18
 
 # see https://www.tensorflow.org/get_started/premade_estimators
