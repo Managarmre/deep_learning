@@ -9,11 +9,10 @@ import tensorflow as tf
 import numpy as np
 
 BATCHSIZE = 100
+STEP = 1000
 
 def main(_):
     print ("Try Premade Estimator")
-
-    Labels = ["leopard","camera","dalmatian","human","cougar","wild cat"]
 
     # recover train and test data
     dataTrain = myData.loadData("Database/data.txt")
@@ -28,32 +27,19 @@ def main(_):
     for key in train_x.keys():
         my_feature_columns.append(tf.feature_column.numeric_column(key=key))
 
-    # print train_x.keys()
-    # print max(train_x.keys())
-    # exit()
-
-    # print Labels
-    # print train_y
-    # exit()
-
-    # print my_feature_columns
-    # print len(my_feature_columns)
-    # exit()
-
     # create three hidden layer DNN with 4 units each
     # DNNClassifier is useful for deep models that perform multiclass classification
     #   6 targets classes [0 to 5]
     classifier = tf.estimator.DNNClassifier(feature_columns=my_feature_columns,
         hidden_units=[4,4,4],
         n_classes=6)
-        # ,label_vocabulary=Labels)
 
     print "====> begin training"
 
     # train the model
     # steps indicate when stop the training (after n steps)
     classifier.train(input_fn=lambda:myData.trainData(train_x,train_y,BATCHSIZE),
-        steps=1000)
+        steps=STEP)
 
     print "====> end of training"
 
@@ -61,7 +47,7 @@ def main(_):
 
     eval_result = classifier.evaluate(input_fn=lambda:myData.evalTraining(test_x,test_y,BATCHSIZE))
     
-    print '\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
+    print '\n====> Test set accuracy: {accuracy:0.3f}\n'.format(**eval_result)
 
     print "====> end eval"
 
@@ -71,5 +57,5 @@ if __name__ == '__main__':
     # tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run()
 
-# accuracy 30%
+# accuracy batween 13% and 30%
 # execution time: around 10 minutes
