@@ -76,7 +76,7 @@ def main(_):
     # call your model
     classifier = tf.estimator.Estimator(model_fn=myModel,
         params={'feature_columns':my_feature_columns,'hidden_units':[4,4,4],
-        'n_classes':6})
+        'n_classes':4})
 
     print "===> TRAINING"
     # train your model
@@ -93,5 +93,5 @@ if __name__ == '__main__':
     # tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run()
 
-# accuracy batween 13% and 30%
+# accuracy 40%
 # execution time: around 10 minutes

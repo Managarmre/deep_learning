@@ -28,10 +28,10 @@ def main(_):
 
     # create three hidden layer DNN with 4 units each
     # DNNClassifier is useful for deep models that perform multiclass classification
-    #   6 targets classes [0 to 5]
+    #   4 targets classes [0 to 3]
     classifier = tf.estimator.DNNClassifier(feature_columns=my_feature_columns,
         hidden_units=[4,4,4],
-        n_classes=6)
+        n_classes=4)
 
     print "====> begin training"
 
@@ -56,5 +56,5 @@ if __name__ == '__main__':
     # tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run()
 
-# accuracy batween 13% and 30%
+# accuracy 40%
 # execution time: around 10 minutes
